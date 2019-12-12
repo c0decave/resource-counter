@@ -1,6 +1,12 @@
 import click
 import boto3
 import sys
+import botocore
+from IPython import embed
+
+mperm = {}
+
+
 resource_counts = {}
 resource_totals = {}
 
@@ -57,19 +63,111 @@ def controller(access, secret, profile):
     click.echo('Counting resources across regions. This will take a few minutes...')
     click.echo(' ')
     ec2_counter(account_id)
-    autoscaling_counter()
-    balancer_counter()
-    s3_counter()
-    iam_counter()
-    lambda_counter()
-    glacier_counter()
-    cloudwatch_rules_counter()
-    config_counter()
-    cloudtrail_counter()
-    sns_counter()
-    kms_counter()
-    dynamo_counter()
-    rds_counter()
+    try:
+        autoscaling_counter()
+    except botocore.exceptions.ClientError as e:
+        op = e.__dict__['operation_name']
+        code = e.__dict__['response']['Error']['Code']
+        msg = e.__dict__['response']['Error']['Message']
+        print('{0} {1} Operation: {2}'.format(code,msg,op))
+        mperm[op] = {'Code':code,'Message':msg}
+    try:
+        balancer_counter()
+    except botocore.exceptions.ClientError as e:
+        op = e.__dict__['operation_name']
+        code = e.__dict__['response']['Error']['Code']
+        msg = e.__dict__['response']['Error']['Message']
+        print('{0} {1} Operation: {2}'.format(code,msg,op))
+        mperm[op] = {'Code':code,'Message':msg}
+    try:
+        s3_counter()
+    except botocore.exceptions.ClientError as e:
+        op = e.__dict__['operation_name']
+        code = e.__dict__['response']['Error']['Code']
+        msg = e.__dict__['response']['Error']['Message']
+        print('{0} {1} Operation: {2}'.format(code,msg,op))
+        mperm[op] = {'Code':code,'Message':msg}
+    try:
+        iam_counter()
+    except botocore.exceptions.ClientError as e:
+        op = e.__dict__['operation_name']
+        code = e.__dict__['response']['Error']['Code']
+        msg = e.__dict__['response']['Error']['Message']
+        print('{0} {1} Operation: {2}'.format(code,msg,op))
+        mperm[op] = {'Code':code,'Message':msg}
+    try:
+        lambda_counter()
+    except botocore.exceptions.ClientError as e:
+        op = e.__dict__['operation_name']
+        code = e.__dict__['response']['Error']['Code']
+        msg = e.__dict__['response']['Error']['Message']
+        print('{0} {1} Operation: {2}'.format(code,msg,op))
+        mperm[op] = {'Code':code,'Message':msg}
+
+    try:
+        glacier_counter()
+    except botocore.exceptions.ClientError as e:
+        op = e.__dict__['operation_name']
+        code = e.__dict__['response']['Error']['Code']
+        msg = e.__dict__['response']['Error']['Message']
+        print('{0} {1} Operation: {2}'.format(code,msg,op))
+        mperm[op] = {'Code':code,'Message':msg}
+    try:
+        cloudwatch_rules_counter()
+    except botocore.exceptions.ClientError as e:
+        op = e.__dict__['operation_name']
+        code = e.__dict__['response']['Error']['Code']
+        msg = e.__dict__['response']['Error']['Message']
+        print('{0} {1} Operation: {2}'.format(code,msg,op))
+        mperm[op] = {'Code':code,'Message':msg}
+    try:
+        config_counter()
+    except botocore.exceptions.ClientError as e:
+        op = e.__dict__['operation_name']
+        code = e.__dict__['response']['Error']['Code']
+        msg = e.__dict__['response']['Error']['Message']
+        print('{0} {1} Operation: {2}'.format(code,msg,op))
+        mperm[op] = {'Code':code,'Message':msg}
+    try:
+        cloudtrail_counter()
+    except botocore.exceptions.ClientError as e:
+        op = e.__dict__['operation_name']
+        code = e.__dict__['response']['Error']['Code']
+        msg = e.__dict__['response']['Error']['Message']
+        print('{0} {1} Operation: {2}'.format(code,msg,op))
+        mperm[op] = {'Code':code,'Message':msg}
+    try:
+        sns_counter()
+    except botocore.exceptions.ClientError as e:
+        op = e.__dict__['operation_name']
+        code = e.__dict__['response']['Error']['Code']
+        msg = e.__dict__['response']['Error']['Message']
+        print('{0} {1} Operation: {2}'.format(code,msg,op))
+        mperm[op] = {'Code':code,'Message':msg}
+    try:
+        kms_counter()
+    except botocore.exceptions.ClientError as e:
+        op = e.__dict__['operation_name']
+        code = e.__dict__['response']['Error']['Code']
+        msg = e.__dict__['response']['Error']['Message']
+        print('{0} {1} Operation: {2}'.format(code,msg,op))
+        mperm[op] = {'Code':code,'Message':msg}
+    try:
+        dynamo_counter()
+    except botocore.exceptions.ClientError as e:
+        op = e.__dict__['operation_name']
+        code = e.__dict__['response']['Error']['Code']
+        msg = e.__dict__['response']['Error']['Message']
+        print('{0} {1} Operation: {2}'.format(code,msg,op))
+        mperm[op] = {'Code':code,'Message':msg}
+    try:
+        rds_counter()
+    except botocore.exceptions.ClientError as e:
+        op = e.__dict__['operation_name']
+        code = e.__dict__['response']['Error']['Code']
+        msg = e.__dict__['response']['Error']['Message']
+        print('{0} {1} Operation: {2}'.format(code,msg,op))
+        mperm[op] = {'Code':code,'Message':msg}
 
     # show results
     click.echo('Resources by region')
@@ -120,26 +218,156 @@ def ec2_counter(account_id):
         vpc_peering_connection_iterator = ec2.vpc_peering_connections.all()
         network_acl_iterator = ec2.network_acls.all()
         vpc_address_iterator = ec2.vpc_addresses.all()
-        nat_gateways = ec2client.get_paginator('describe_nat_gateways')
-        nat_gateway_iterator = nat_gateways.paginate()
-        endpoints = ec2client.describe_vpc_endpoints()
 
+        try:
+            nat_gateways = ec2client.get_paginator('describe_nat_gateways')
+        except botocore.exceptions.ClientError as e:
+            op = e.__dict__['operation_name']
+            code = e.__dict__['response']['Error']['Code']
+            msg = e.__dict__['response']['Error']['Message']
+            print('{0} {1} Operation: {2}'.format(code,msg,op))
+            mperm[op] = {'Code':code,'Message':msg}
+
+        try:
+            nat_gateway_iterator = nat_gateways.paginate()
+        except botocore.exceptions.ClientError as e:
+            op = e.__dict__['operation_name']
+            code = e.__dict__['response']['Error']['Code']
+            msg = e.__dict__['response']['Error']['Message']
+            print('{0} {1} Operation: {2}'.format(code,msg,op))
+            mperm[op] = {'Code':code,'Message':msg}
+
+        try:
+            endpoints = ec2client.describe_vpc_endpoints()
+        except botocore.exceptions.ClientError as e:
+            op = e.__dict__['operation_name']
+            code = e.__dict__['response']['Error']['Code']
+            msg = e.__dict__['response']['Error']['Message']
+            print('{0} {1} Operation: {2}'.format(code,msg,op))
+            mperm[op] = {'Code':code,'Message':msg}
 
         # count resources
-        instance_counter = len(list(instance_iterator))
-        group_counter = len(list(security_group_iterator))
-        volume_counter = len(list(volume_iterator))
-        snapshot_counter = len(list(snapshot_iterator))
-        image_counter = len(list(image_iterator))
-        vpc_counter = len(list(vpc_iterator))
-        subnet_counter = len(list(subnet_iterator))
-        peering_counter = len(list(vpc_peering_connection_iterator))
-        acl_counter = len(list(network_acl_iterator))
-        ip_counter = len(list(vpc_address_iterator))
+        # try to get instances
+        try:
+            instance_counter = len(list(instance_iterator))
+        except botocore.exceptions.ClientError as e:
+            op = e.__dict__['operation_name']
+            code = e.__dict__['response']['Error']['Code']
+            msg = e.__dict__['response']['Error']['Message']
+            print('{0} {1} Operation: {2}'.format(code,msg,op))
+            mperm[op] = {'Code':code,'Message':msg}
+            instance_counter = 0
+            
+        try:
+            group_counter = len(list(security_group_iterator))
+        except botocore.exceptions.ClientError as e:
+            op = e.__dict__['operation_name']
+            code = e.__dict__['response']['Error']['Code']
+            msg = e.__dict__['response']['Error']['Message']
+            print('{0} {1} Operation: {2}'.format(code,msg,op))
+            mperm[op] = {'Code':code,'Message':msg}
+            group_counter = 0
+
+        try:
+            volume_counter = len(list(volume_iterator))
+        except botocore.exceptions.ClientError as e:
+            op = e.__dict__['operation_name']
+            code = e.__dict__['response']['Error']['Code']
+            msg = e.__dict__['response']['Error']['Message']
+            print('{0} {1} Operation: {2}'.format(code,msg,op))
+            mperm[op] = {'Code':code,'Message':msg}
+            volume_counter = 0
+
+        try:
+            snapshot_counter = len(list(snapshot_iterator))
+        except botocore.exceptions.ClientError as e:
+            op = e.__dict__['operation_name']
+            code = e.__dict__['response']['Error']['Code']
+            msg = e.__dict__['response']['Error']['Message']
+            print('{0} {1} Operation: {2}'.format(code,msg,op))
+            mperm[op] = {'Code':code,'Message':msg}
+            snapshot_counter = 0
+
+        try:
+            image_counter = len(list(image_iterator))
+        except botocore.exceptions.ClientError as e:
+            op = e.__dict__['operation_name']
+            code = e.__dict__['response']['Error']['Code']
+            msg = e.__dict__['response']['Error']['Message']
+            print('{0} {1} Operation: {2}'.format(code,msg,op))
+            mperm[op] = {'Code':code,'Message':msg}
+            image_counter = 0
+
+        try:
+            vpc_counter = len(list(vpc_iterator))
+        except botocore.exceptions.ClientError as e:
+            op = e.__dict__['operation_name']
+            code = e.__dict__['response']['Error']['Code']
+            msg = e.__dict__['response']['Error']['Message']
+            print('{0} {1} Operation: {2}'.format(code,msg,op))
+            mperm[op] = {'Code':code,'Message':msg}
+            vpc_counter = 0
+
+        try:
+            subnet_counter = len(list(subnet_iterator))
+        except botocore.exceptions.ClientError as e:
+            op = e.__dict__['operation_name']
+            code = e.__dict__['response']['Error']['Code']
+            msg = e.__dict__['response']['Error']['Message']
+            print('{0} {1} Operation: {2}'.format(code,msg,op))
+            mperm[op] = {'Code':code,'Message':msg}
+            subnet_counter = 0
+
+        try:
+            peering_counter = len(list(vpc_peering_connection_iterator))
+        except botocore.exceptions.ClientError as e:
+            op = e.__dict__['operation_name']
+            code = e.__dict__['response']['Error']['Code']
+            msg = e.__dict__['response']['Error']['Message']
+            print('{0} {1} Operation: {2}'.format(code,msg,op))
+            mperm[op] = {'Code':code,'Message':msg}
+            peering_counter = 0
+
+
+        try:
+            acl_counter = len(list(network_acl_iterator))
+        except botocore.exceptions.ClientError as e:
+            op = e.__dict__['operation_name']
+            code = e.__dict__['response']['Error']['Code']
+            msg = e.__dict__['response']['Error']['Message']
+            print('{0} {1} Operation: {2}'.format(code,msg,op))
+            mperm[op] = {'Code':code,'Message':msg}
+            acl_counter = 0
+
+        try:
+            ip_counter = len(list(vpc_address_iterator))
+        except botocore.exceptions.ClientError as e:
+            op = e.__dict__['operation_name']
+            code = e.__dict__['response']['Error']['Code']
+            msg = e.__dict__['response']['Error']['Message']
+            print('{0} {1} Operation: {2}'.format(code,msg,op))
+            mperm[op] = {'Code':code,'Message':msg}
+            ip_counter = 0
+
         gateway_counter = 0
-        for gateway in nat_gateway_iterator:
-            gateway_counter += len(gateway['NatGateways'])
-        endpoint_counter = len(endpoints['VpcEndpoints'])
+        try:
+            for gateway in nat_gateway_iterator:
+                try:
+                    gateway_counter += len(gateway['NatGateways'])
+                except botocore.exceptions.ClientError as e:
+                    op = e.__dict__['operation_name']
+                    code = e.__dict__['response']['Error']['Code']
+                    msg = e.__dict__['response']['Error']['Message']
+                    print('{0} {1} Operation: {2}'.format(code,msg,op))
+                    mperm[op] = {'Code':code,'Message':msg}
+            endpoint_counter = len(endpoints['VpcEndpoints'])
+        except botocore.exceptions.ClientError as e:
+            op = e.__dict__['operation_name']
+            code = e.__dict__['response']['Error']['Code']
+            msg = e.__dict__['response']['Error']['Message']
+            print('{0} {1} Operation: {2}'.format(code,msg,op))
+            mperm[op] = {'Code':code,'Message':msg}
+            endpoint_counter = 0 
 
         # add to the cross region totals
         total_instances = total_instances + instance_counter
