@@ -107,3 +107,6 @@ Volumes : 37
 
 Total resources: 796
 
+## Patchup:
+
+Fixed several crashes due quick and dirty catching so tool is useable with non-all-access IDs.
