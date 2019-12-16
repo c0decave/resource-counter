@@ -15,7 +15,8 @@ resource_totals = {}
 @click.option('--secret', help='AWS Secret Key')
 @click.option('--profile', help='If you have multiple credential profiles, use this option to specify one.')
 @click.option('--cregion', help='Choose the region to test for (example: us-east-1, us-west-1), you can provide comma seperated list, like so: us-east-1,me-south-1,us-west-2')
-def controller(access, secret, profile, cregion):
+@click.option('--show-regions', help='Show available regions',default=False,is_flag=True)
+def controller(access, secret, profile, cregion,show_regions):
     global session
     global args
     args = {'region':None}
@@ -59,6 +60,13 @@ def controller(access, secret, profile, cregion):
     # Initialize dictionary to hold the counts. Pull the regions using EC2, since that is in every region.
     # Then build out the master list of regions to then fill in the service counts
     # Also build a separate dictionary for cross-region totals
+
+    if show_regions:
+        print('Available regions:')
+        region_list = session.get_available_regions('ec2')
+        for region in region_list:
+            print(region)
+        sys.exit(0)
 
     if args['region'] != None:
         if cregion.find(',') != -1:
