@@ -14,8 +14,15 @@ resource_totals = {}
 @click.option('--access', help='AWS Access Key. Otherwise will use the standard credentials path for the AWS CLI.')
 @click.option('--secret', help='AWS Secret Key')
 @click.option('--profile', help='If you have multiple credential profiles, use this option to specify one.')
-def controller(access, secret, profile):
+@click.option('--cregion', help='Choose the region to test for (example: us-east-1, us-west-1), you can provide comma seperated list, like so: us-east-1,me-south-1,us-west-2')
+def controller(access, secret, profile, cregion):
     global session
+    global args
+    args = {'region':None}
+
+    # lets addup a region flag
+    if cregion:
+        args['region']=cregion
     if access:
         click.echo('Access Key specified')
         if not secret:
@@ -53,16 +60,26 @@ def controller(access, secret, profile):
     # Then build out the master list of regions to then fill in the service counts
     # Also build a separate dictionary for cross-region totals
 
+    if args['region'] != None:
+        if cregion.find(',') != -1:
+            res = cregion.split(',')
+            region_list = res
+        else:
+            region_list = [cregion]
+            resource_counts[cregion] = {}
+      #  print('Region: {0}'.format(args['region']))
 
-    region_list = session.get_available_regions('ec2')
-    for region in region_list:
-        resource_counts[region] = {}
+    else:
+        region_list = session.get_available_regions('ec2')
+        for region in region_list:
+            resource_counts[region] = {}
+            print('Region: {0}'.format(region))
 
 
     # iterate through the various services to build the counts
     click.echo('Counting resources across regions. This will take a few minutes...')
     click.echo(' ')
-    ec2_counter(account_id)
+    ec2_counter(account_id,cregion)
     try:
         autoscaling_counter()
     except botocore.exceptions.ClientError as e:
@@ -185,9 +202,23 @@ def controller(access, secret, profile):
 # ec2 = session.client('ec2', region_name='us-west-2')
 
 
-def ec2_counter(account_id):
+def ec2_counter(account_id, cregion):
     # get list of regions supported by EC2 endpoint
-    region_list = session.get_available_regions('ec2')
+    if cregion != None:
+        if cregion.find(',') != -1:
+            res = cregion.split(',')
+            region_list = res
+            for ncregion in region_list:
+                resource_counts[ncregion] = {}
+        else:
+            region_list = [cregion]
+            resource_counts[cregion] = {}
+
+#        print('Choosen Region: {0}'.format(args['region']))
+    else:
+        region_list = session.get_available_regions('ec2')
+
+
 
     # initialize cross region totals
     total_instances = 0
@@ -206,6 +237,7 @@ def ec2_counter(account_id):
     for region in region_list:
         ec2 = session.resource('ec2', region_name=region)
         ec2client = session.client('ec2', region_name=region)
+        print("Region: {0}".format(region))
 
         # build the collections to count
         instance_iterator = ec2.instances.all()
@@ -640,10 +672,12 @@ def dynamo_counter():
 
 def rds_counter():
     region_list = session.get_available_regions('rds')
+    print(region_list)
 
     total_dbinstances = 0
 
     for region in region_list:
+        print(region)
         rds = session.client('rds', region_name=region)
         dbinstances_counter = 0
         rds_paginator = rds.get_paginator('describe_db_instances')
