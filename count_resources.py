@@ -2,8 +2,9 @@ import click
 import boto3
 import sys
 import botocore
-from IPython import embed
+import json
 
+# added and saved not printed yet
 mperm = {}
 
 
@@ -14,11 +15,13 @@ resource_totals = {}
 @click.option('--access', help='AWS Access Key. Otherwise will use the standard credentials path for the AWS CLI.')
 @click.option('--secret', help='AWS Secret Key')
 @click.option('--profile', help='If you have multiple credential profiles, use this option to specify one.')
-@click.option('--cregion', help='Choose the region to test for (example: us-east-1, us-west-1), you can provide comma seperated list, like so: us-east-1,me-south-1,us-west-2')
+@click.option('--region', help='Choose the region to test for (example: us-east-1, us-west-1), you can provide comma seperated list, like so: us-east-1,me-south-1,us-west-2')
 @click.option('--show-regions', help='Show available regions',default=False,is_flag=True)
-def controller(access, secret, profile, cregion,show_regions):
+@click.option('--save-json','savejson', help='Save result regions as json',default=False,is_flag=True)
+def controller(access, secret, profile, region,show_regions, savejson):
     global session
     global args
+    cregion = region
     args = {'region':None}
 
     # lets addup a region flag
@@ -81,7 +84,7 @@ def controller(access, secret, profile, cregion,show_regions):
         region_list = session.get_available_regions('ec2')
         for region in region_list:
             resource_counts[region] = {}
-            print('Region: {0}'.format(region))
+            #print('Region: {0}'.format(region))
 
 
     # iterate through the various services to build the counts
@@ -195,15 +198,31 @@ def controller(access, secret, profile, cregion,show_regions):
         mperm[op] = {'Code':code,'Message':msg}
 
     # show results
-    click.echo('Resources by region')
+    #click.echo('Resources by region')
     click.echo(resource_counts)
+    for key in sorted(resource_counts.keys()):
+        click.echo(' ')
+        click.echo('Ressources in {0}'.format(key))
+        click.echo('-----------------------')
+        for kitem, vitem in sorted(resource_counts[key].items()):
+            click.echo("{} : {}".format(kitem, vitem))
+
     click.echo(' ')
     click.echo('Resource totals across all regions')
+    click.echo('----------------------------------')
     for key, value in sorted(resource_totals.items()):
         click.echo("{} : {}".format(key, value))
     total = sum(resource_totals.values())
     click.echo('')
     click.echo('Total resources: ' + str(total))
+
+    if savejson:
+        click.echo('Saving json results in rc.json')
+        click.echo('------------------------------')
+        jd = json.dumps(resource_counts)
+        fw = open('rc.json','w')
+        fw.write(jd)
+        fw.close()
 
 # ec2 = boto3.client('ec2', region_name='us-west-2')
 
@@ -245,7 +264,7 @@ def ec2_counter(account_id, cregion):
     for region in region_list:
         ec2 = session.resource('ec2', region_name=region)
         ec2client = session.client('ec2', region_name=region)
-        print("Region: {0}".format(region))
+        print("Checking Region: {0}".format(region))
 
         # build the collections to count
         instance_iterator = ec2.instances.all()
@@ -680,7 +699,7 @@ def dynamo_counter():
 
 def rds_counter():
     region_list = session.get_available_regions('rds')
-    print(region_list)
+    #print(region_list)
 
     total_dbinstances = 0
 
